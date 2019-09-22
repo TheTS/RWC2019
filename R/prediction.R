@@ -86,28 +86,28 @@ predict_rf <- function(team1, team2, model, pool_game = TRUE) {
 # Pool game structure -----------------------------------------------------
 
 pool_A <- data.frame(
-  pool = "A",
+  pool = "Pool A",
   game = 1:10,
   team_1 = c("JPN","IRE","RUS","JPN","SCO","IRE","JPN","SCO","IRE","JPN"),
   team_2 = c("RUS","SCO","SAM","IRE","SAM","RUS","SAM","RUS","SAM","SCO")
 )
 
 pool_B <- data.frame(
-  pool = "B",
+  pool = "Pool B",
   game = 1:10,
   team_1 = c("NZL","ITA","ITA","RSA","NZL","RSA","NZL","RSA","NZL","NAM"),
   team_2 = c("RSA","NAM","CAN","NAM","CAN","ITA","NAM","CAN","ITA","CAN")
 )
 
 pool_C <- data.frame(
-  pool = "C",
+  pool = "Pool C",
   game = 1:10,
   team_1 = c("FRA","ENG","ENG","ARG","FRA","ENG","FRA","ARG","ENG","USA"),
   team_2 = c("ARG","TON","USA","TON","USA","ARG","TON","USA","FRA","TON")
 )
 
 pool_D <- data.frame(
-  pool = "D",
+  pool = "Pool D",
   game = 1:10,
   team_1 = c("AUS","WAL","FIJ","GEO","AUS","GEO","AUS","WAL","AUS","WAL"),
   team_2 = c("FIJ","GEO","URU","URU","WAL","FIJ","URU","FIJ","GEO","URU")

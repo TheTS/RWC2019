@@ -16,7 +16,7 @@ df.plot <- read_csv('pool_game_predictions.csv') %>%
          win1 = m1 >= 0.5,
          win2 = m2 >= 0.5,
          team = factor(team),
-         pool = factor(pool, levels = LETTERS[1:4]),
+         pool = factor(pool),
          game = factor(game, levels = 1:10)) %>% 
   pivot_longer(5:8) %>% 
   mutate(name = gsub('([a-z])([1-2])', '\\1_\\2', name)) %>% 
