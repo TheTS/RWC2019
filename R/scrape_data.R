@@ -166,14 +166,13 @@ scrape_rankings <- function(dates = seq(as.Date("2004/01/01"), as.Date("2019/09/
 
 
 # Add ranking and home/away status to match data --------------------------
-merge_espn_rank_vanue <- function(city_data = 'data/ground_locs.csv') {
+merge_espn_rank_vanue <- function(city_data = 'data/ground_locs.rds') {
   
   espn = scrape_espn(get_country_rcw())
   rank = scrape_rankings() %>% 
     mutate(team_abbr = ifelse(team_abbr=='TGA', 'TON', team_abbr))
   
-  df.city <- read_csv(city_data) %>% 
-    select(-1, -2, -5)
+  df.city <- read_rds(city_data) 
   
   df <- left_join(espn, rank, by = c('team' = 'team_abbr', 'dater' = 'date')) %>% 
     rename(team_1 = team,

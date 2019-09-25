@@ -1,5 +1,4 @@
 library(tidyverse)
-library(ranger)
 library(randomForest)
 
 # Making predictions using two different models (each uses a different dataset)
@@ -7,77 +6,45 @@ library(randomForest)
 m1 <- read_rds('models/model_rf_lassen.rds')
 m2 <- read_rds('models/model_rf_espn.rds')
 
-# To make life easier, a universal function to work with both datasets and
-# and both types of models.
+
+# To make life easier, a function to work with both datasets
 predict_rf <- function(team1, team2, model, pool_game = TRUE) {
   
   ranking <- read_rds('data/world_rankings_data.rds') %>% # TODO scrape this in real time
     mutate(team_abbr = ifelse(team_abbr=='TGA', 'TON', team_abbr))
   
-  # Ranger models
-  if(class(model)[1] == "ranger") {
+  # Must be the espn dataset
+  if("team_1_rank" %in% names(model$forest$xlevels)) {
     
-    # Must be the espn dataset
-    if("team_1_rank" %in% model$forest$independent.variable.names) {
-      dummy.df <- data.frame(
-        team_1 = team1,
-        team_2 = team2,
-        team_1_rank = ranking %>% filter(team_abbr == team1) %>% pull(rank),
-        team_2_rank = ranking %>% filter(team_abbr == team2) %>% pull(rank),
-        venue = if_else(team1 == "JPN", 'Home', if_else(team2 == "JPN", 'Away', 'Neutral')),
-        weeks_ago = 0
-      )
-      
-    } else {
-      # Must be the lassen dataset
-      dummy.df <- data.frame(
-        team_1 = team1,
-        team_2 = team2,
-        cup_match = '0',
-        late_stage = if_else(pool_game, '0', '1'),
-        weeks_ago = 0
-      )
-    }
+    dummy.df <- read_rds('data/dummy_df.rds')[['espn']]
     
-    return(predict(model, data = dummy.df)[[1]][,"won"])
+    dummy.df[1,] <- c(  
+      team_1 = team1,
+      team_2 = team2,
+      team_1_rank = ranking %>% filter(team_abbr == team1) %>% pull(rank),
+      team_2_rank = ranking %>% filter(team_abbr == team2) %>% pull(rank),
+      venue = if_else(team1 == "JPN", 'Home', if_else(team2 == "JPN", 'Away', 'Neutral')),
+      weeks_ago = 0,
+      result = NA
+    )
     
-  # randomForest models
   } else {
     
-    # Must be the espn dataset
-    if("team_1_rank" %in% names(model$forest$xlevels)) {
-      
-      dummy.df <- read_rds('data/dummy_df.rds')[['espn']]
-      
-      dummy.df[1,] <- c(  
-        team_1 = team1,
-        team_2 = team2,
-        team_1_rank = ranking %>% filter(team_abbr == team1) %>% pull(rank),
-        team_2_rank = ranking %>% filter(team_abbr == team2) %>% pull(rank),
-        venue = if_else(team1 == "JPN", 'Home', if_else(team2 == "JPN", 'Away', 'Neutral')),
-        weeks_ago = 0,
-        result = NA
-      )
-      
-      
-    } else {
-      # Must be the lassen dataset
-      dummy.df <- read_rds('data/dummy_df.rds')[['lassen']]
-      
-      dummy.df[1,] <- c(  
-        team_1 = team1,
-        team_2 = team2,
-        cup_match = '0',
-        late_stage = if_else(pool_game, '0', '1'),
-        weeks_ago = 0,
-        result = NA
-      )
-      
-      
-    }
+    # Must be the lassen dataset
+    dummy.df <- read_rds('data/dummy_df.rds')[['lassen']]
     
-    return(predict(model, newdata = dummy.df, type = 'prob')[2])
+    dummy.df[1,] <- c(  
+      team_1 = team1,
+      team_2 = team2,
+      cup_match = '0',
+      late_stage = if_else(pool_game, '0', '1'),
+      weeks_ago = 0,
+      result = NA
+    )
+    
   }
+    
+  predict(model, newdata = dummy.df, type = 'prob')[2]
   
 }
 

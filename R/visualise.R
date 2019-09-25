@@ -45,10 +45,10 @@ ggplot(df.plot, aes(x=number, y = m, fill = win)) +
   
   labs(y = 'Probability of winning',
        title = 'RWC 2019 pool game predictions',
-       subtitle = 'Predictions obtained from two models `m1` and `m2`.',
+       subtitle = 'Predictions obtained from two independent models `m1` and `m2`.',
        caption = "\n`m1` uses data scraped from lassen.co.nz (all test matches from 1987-2019)\n
                   `m2` uses data scraped from espnscrum.com (2003-2019) and historical world rankings (world.rugby/rankings)\n
-                  All code and data can be found at github.com/TheTS/RWC2019") +
+                  Wanna see how I did it? All code and data can be found at github.com/TheTS/RWC2019") +
   coord_flip()
 
 
