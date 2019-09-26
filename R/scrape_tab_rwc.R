@@ -52,8 +52,6 @@ get_tab_odds <- function(check_install = FALSE) {
   
 }
 
-x <- get_tab_odds()
-
-write_csv(x, paste0('tab_odds(', Sys.Date(), ').csv'))
+write_csv(get_tab_odds(), paste0('data/tab_odds/tab_odds(', Sys.Date(), ').csv'))
 
 

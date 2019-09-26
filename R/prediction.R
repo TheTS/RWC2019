@@ -84,13 +84,125 @@ pool_games <- bind_rows(pool_A, pool_B, pool_C, pool_D)
 rm(pool_A, pool_B, pool_C, pool_D)
   
 
-# Predicting results ------------------------------------------------------
+
+# Pool game predictions ---------------------------------------------------
 
 pool_games <- pool_games %>% 
   mutate(team1_m1 = map2(team_1, team_2, ~predict_rf(.x, .y, model=m1)) %>% unlist(),
          team1_m2 = map2(team_1, team_2, ~predict_rf(.x, .y, model=m2)) %>% unlist())
 
 write_csv(pool_games, 'pool_game_predictions.csv')
+
+
+
+# Quater final predictions ------------------------------------------------
+
+pool_results <- pool_games %>% 
+  mutate(team_w = if_else(team1_m2 > 0.5, team_1, team_2)) %>% 
+  select(pool, team_w) %>% 
+  group_by(pool, team_w) %>% 
+  tally() %>%  # Not taking into account bonus points
+  top_n(2) %>% 
+  arrange(pool, desc(n)) %>% 
+  mutate(result = c('winner', 'runner_up'))
+  
+
+quarters <- data.frame(
+  game = c('QF1', 'QF2', 'QF3', 'QF4'),
+  
+  team_1 = c(
+    pull(filter(pool_results, pool == "Pool C" & result == 'winner'), team_w),
+    pull(filter(pool_results, pool == "Pool B" & result == 'winner'), team_w),
+    pull(filter(pool_results, pool == "Pool D" & result == 'winner'), team_w),
+    pull(filter(pool_results, pool == "Pool A" & result == 'winner'), team_w)
+  ),
+  
+  team_2 = c(
+    pull(filter(pool_results, pool == "Pool D" & result == 'runner_up'), team_w),
+    pull(filter(pool_results, pool == "Pool A" & result == 'runner_up'), team_w),
+    pull(filter(pool_results, pool == "Pool C" & result == 'runner_up'), team_w),
+    pull(filter(pool_results, pool == "Pool B" & result == 'runner_up'), team_w)
+  )
+) %>%
+  mutate_all(as.character) %>% 
+  mutate(team1_m1 = map2(team_1, team_2, ~predict_rf(.x, .y, model=m1)) %>% unlist(),
+         team1_m2 = map2(team_1, team_2, ~predict_rf(.x, .y, model=m2)) %>% unlist())
+
+
+
+# Semi final predictions --------------------------------------------------
+
+quarter_results <- quarters %>% 
+  mutate(team_w = if_else(team1_m2 > 0.5, team_1, team_2)) %>% 
+  select(game, team_w)
+
+semis <- data.frame(
+  game = c('SF1', 'SF2'),
+  
+  team_1 = c(
+    pull(filter(quarter_results, game == 'QF1'), team_w),
+    pull(filter(quarter_results, game == 'QF3'), team_w)
+  ),
+  
+  team_2 = c(
+    pull(filter(quarter_results, game == 'QF2'), team_w),
+    pull(filter(quarter_results, game == 'QF4'), team_w)
+  ) 
+) %>%
+  mutate_all(as.character) %>% 
+  mutate(team1_m1 = map2(team_1, team_2, ~predict_rf(.x, .y, model=m1)) %>% unlist(),
+         team1_m2 = map2(team_1, team_2, ~predict_rf(.x, .y, model=m2)) %>% unlist())
+
+
+
+# Final and Bronze final predictions --------------------------------------
+
+semis_results <- semis %>% 
+  mutate(team_w = if_else(team1_m2 > 0.5, team_1, team_2),
+         team_l = if_else(team1_m2 > 0.5, team_2, team_1)) %>% 
+  select(game, team_w, team_l)
+
+finals <- data.frame(
+  game = c('F', 'BF'),
+  
+  team_1 = c(
+    pull(filter(semis_results, game == 'SF1'), team_w),
+    pull(filter(semis_results, game == 'SF1'), team_l)
+  ),
+  
+  team_2 = c(
+    pull(filter(semis_results, game == 'SF2'), team_w),
+    pull(filter(semis_results, game == 'SF2'), team_l)
+    
+  )
+  
+) %>%
+  mutate_all(as.character) %>% 
+  mutate(team1_m1 = map2(team_1, team_2, ~predict_rf(.x, .y, model=m1)) %>% unlist(),
+         team1_m2 = map2(team_1, team_2, ~predict_rf(.x, .y, model=m2)) %>% unlist())
+
+
+# Joining all results
+
+results <- bind_rows(unite(pool_games, 'game', c('pool', 'game')),  quarters, semis, finals)
+
+write_csv(results[41:48,], 'knockout_stage_predictions.csv')
+
+
+predict_rf('ENG', 'WAL', m2)
+predict_rf('AUS', 'FRA', m2)
+predict_rf('WAL', 'IRE', m2)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
