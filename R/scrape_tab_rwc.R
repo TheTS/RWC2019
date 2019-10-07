@@ -15,7 +15,7 @@ get_tab_odds <- function(check_install = FALSE) {
     Sys.sleep(2)
     load_more <- tryCatch({
       suppressMessages(
-        remDr$client$findElement(using = 'css', '.content-loader__load-more-link')
+        remDr$client$findElement(using = 'css', '.button--outcome__price') #.button--outcome__price
       )
     }, error = function(e){NULL})
   }
