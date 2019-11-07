@@ -106,6 +106,11 @@ pool_results <- pool_games %>%
   arrange(pool, desc(n)) %>% 
   mutate(result = c('winner', 'runner_up'))
   
+# Sneaky edits to match actual results -----------------
+pool_results <- pool_results %>% 
+  mutate(team_w = ifelse(pool == "Pool A" & result == 'winner', "JPN", team_w),
+         team_w = ifelse(pool == "Pool A" & result == 'runner_up', "IRE", team_w))
+# ------------------------------------------------------
 
 quarters <- data.frame(
   game = c('QF1', 'QF2', 'QF3', 'QF4'),
@@ -162,18 +167,24 @@ semis_results <- semis %>%
          team_l = if_else(team1_m2 > 0.5, team_2, team_1)) %>% 
   select(game, team_w, team_l)
 
+
+# Sneaky edits to match actual results -----------------
+semis_results <- semis_results %>% 
+  mutate(team_w = ifelse(game == "SF1", "ENG", team_w),
+         team_l = ifelse(game == "SF1", "NZL", team_l))
+# ------------------------------------------------------
+
 finals <- data.frame(
-  game = c('F', 'BF'),
+  game = c('BF', 'F'),
   
   team_1 = c(
-    pull(filter(semis_results, game == 'SF1'), team_w),
-    pull(filter(semis_results, game == 'SF1'), team_l)
+    pull(filter(semis_results, game == 'SF1'), team_l),
+    pull(filter(semis_results, game == 'SF1'), team_w)
   ),
   
   team_2 = c(
-    pull(filter(semis_results, game == 'SF2'), team_w),
-    pull(filter(semis_results, game == 'SF2'), team_l)
-    
+    pull(filter(semis_results, game == 'SF2'), team_l),
+    pull(filter(semis_results, game == 'SF2'), team_w)
   )
   
 ) %>%
@@ -183,19 +194,14 @@ finals <- data.frame(
 
 
 # Joining all results
-
 results <- bind_rows(unite(pool_games, 'game', c('pool', 'game')),  quarters, semis, finals)
 
 write_csv(results[41:48,], 'knockout_stage_predictions.csv')
 
 
-predict_rf('ENG', 'WAL', m2)
-predict_rf('AUS', 'FRA', m2)
-predict_rf('WAL', 'IRE', m2)
 
 
-
-
+# TODO: Add predicted score difference here
 
 
 

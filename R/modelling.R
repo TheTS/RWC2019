@@ -9,7 +9,6 @@ cl <- registerDoParallel(cores = detectCores()-1)
 #   -- (1) Predicting probability of team 1 winning
 
 
-
 # Dataset 1: lassen data
 df1 <- read_rds('data/lassen_match_data.rds') %>% 
   select(-date, -point_diff, -pool_match, -neutral) %>% 
@@ -51,9 +50,22 @@ write_rds(list(lassen=df1[0,], espn=df2[0,]), 'data/dummy_df.rds')
 
 
 
-# TODO:
+# TODO: Tune this properly
 #   -- (2) Predicting winning or losing margin of team 1 (points difference)
 
+# Dataset 2: ESPN data
+df3 <- read_rds('data/espn_match_data.rds') %>% 
+  select(-date, -result) %>% 
+  mutate_at(vars(team_1, team_2), as.factor)
 
+m3 <- randomForest(point_diff ~ ., 
+                   data = df3,
+                   ntree = 100,
+                   mtry = 4,
+                   replace = TRUE,
+                   importance = TRUE)
+m3
+varImpPlot(m3)
+write_rds(m3, 'models/model_rf_espn_pd.rds')
 
 
